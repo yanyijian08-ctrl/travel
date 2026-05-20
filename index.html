@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>旅行记忆</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #fdf6f0;
+    color: #5c4b3c;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    min-height: 100vh;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  header {
+    text-align: center;
+    padding: 56px 20px 40px;
+  }
+
+  header h1 {
+    font-size: 1.8rem;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    color: #6b5744;
+  }
+
+  header p {
+    font-size: 0.9rem;
+    color: #b8a894;
+    margin-top: 6px;
+  }
+
+  .gallery {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px 80px;
+    column-count: 3;
+    column-gap: 20px;
+  }
+
+  /* --- Polaroid card --- */
+  .gallery-item {
+    break-inside: avoid;
+    margin-bottom: 20px;
+    cursor: pointer;
+    background: #faf7f2;
+    padding: 10px 10px 32px;
+    border-radius: 4px;
+    box-shadow:
+      0 1px 3px rgba(80, 50, 20, 0.06),
+      0 3px 12px rgba(80, 50, 20, 0.08),
+      0 6px 24px rgba(80, 50, 20, 0.04);
+    transition: box-shadow 0.35s ease, transform 0.35s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .gallery-item:hover {
+    box-shadow:
+      0 2px 6px rgba(80, 50, 20, 0.1),
+      0 6px 20px rgba(80, 50, 20, 0.12),
+      0 12px 36px rgba(80, 50, 20, 0.06);
+    transform: translateY(-3px);
+  }
+
+  .gallery-item:active {
+    transform: scale(0.96);
+  }
+
+  .gallery-item .photo-frame {
+    width: 100%;
+    overflow: hidden;
+    border-radius: 3px;
+    line-height: 0;
+  }
+
+  .gallery-item img {
+    width: 100%;
+    display: block;
+  }
+
+  /* Date stamp */
+  .gallery-item .date-stamp {
+    text-align: center;
+    margin-top: 10px;
+    font-family: "Brush Script MT", "KaiTi", "STKaiti", cursive, serif;
+    font-size: 0.85rem;
+    color: #c47a4a;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    opacity: 0.8;
+    cursor: text;
+    border: 1px dashed transparent;
+    border-radius: 3px;
+    padding: 2px 6px;
+    transition: border-color 0.2s ease, background 0.2s ease;
+    outline: none;
+    min-width: 60px;
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  .gallery-item .date-stamp:hover {
+    border-color: #d4a574;
+    background: rgba(212, 165, 116, 0.08);
+  }
+
+  .gallery-item .date-stamp:focus {
+    border-color: #c47a4a;
+    background: rgba(212, 165, 116, 0.12);
+    opacity: 1;
+  }
+
+  /* --- Scroll reveal --- */
+  .gallery-item.reveal {
+    opacity: 0;
+    transform: translateY(36px);
+    transition: opacity 0.55s ease-out, transform 0.55s ease-out;
+  }
+
+  .gallery-item.reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* --- Floating random button --- */
+  .btn-random {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: none;
+    background: #d4a574;
+    color: #fff;
+    font-size: 1.5rem;
+    cursor: pointer;
+    box-shadow: 0 4px 18px rgba(180, 120, 60, 0.3);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: breathe 3s ease-in-out infinite;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.2s ease;
+  }
+
+  .btn-random:hover {
+    background: #c8955f;
+  }
+
+  .btn-random:active {
+    animation: none;
+  }
+
+  @keyframes breathe {
+    0%, 100% { box-shadow: 0 4px 18px rgba(180, 120, 60, 0.3); transform: scale(1); }
+    50%      { box-shadow: 0 6px 28px rgba(180, 120, 60, 0.45); transform: scale(1.06); }
+  }
+
+  /* --- Lightbox --- */
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    background: rgba(30, 22, 14, 0.94);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    touch-action: none;
+  }
+
+  .lightbox.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .lightbox-img-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding: 60px 16px 90px;
+    overflow: hidden;
+  }
+
+  .lightbox-img {
+    position: absolute;
+    max-width: 92vw;
+    max-height: 76vh;
+    object-fit: contain;
+    border-radius: 6px;
+    box-shadow: 0 4px 40px rgba(0, 0, 0, 0.35);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    -webkit-user-drag: none;
+    user-select: none;
+    pointer-events: none;
+  }
+
+  .lightbox-img.current {
+    opacity: 1;
+    position: relative;
+  }
+
+  .lightbox-img.zoomed {
+    max-width: none;
+    max-height: none;
+    border-radius: 8px;
+    cursor: grab;
+  }
+
+  .lightbox-img.zoomed:active { cursor: grabbing; }
+
+  .lightbox-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    font-size: 1.3rem;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+  }
+
+  .lightbox-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    font-size: 1.2rem;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+  }
+
+  .lightbox-prev { left: 8px; }
+  .lightbox-next { right: 8px; }
+
+  .lightbox-counter {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.85rem;
+    letter-spacing: 0.06em;
+  }
+
+  .btn-shuffle {
+    position: absolute;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    z-index: 10;
+    transition: background 0.2s ease;
+  }
+
+  .btn-shuffle:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  footer {
+    text-align: center;
+    padding: 0 20px 44px;
+    color: #c8b8a4;
+    font-size: 0.8rem;
+  }
+
+  /* Tablet */
+  @media (max-width: 900px) {
+    .gallery {
+      column-count: 2;
+      column-gap: 14px;
+      padding: 0 14px 70px;
+    }
+    .gallery-item { margin-bottom: 14px; padding: 8px 8px 24px; }
+  }
+
+  /* Phone */
+  @media (max-width: 500px) {
+    header { padding: 40px 16px 28px; }
+    header h1 { font-size: 1.5rem; }
+
+    .gallery {
+      column-count: 2;
+      column-gap: 10px;
+      padding: 0 10px 60px;
+    }
+    .gallery-item { margin-bottom: 10px; padding: 7px 7px 20px; }
+    .gallery-item .date-stamp { font-size: 0.72rem; margin-top: 6px; }
+
+    .btn-random { width: 48px; height: 48px; bottom: 20px; right: 20px; font-size: 1.3rem; }
+
+    .lightbox-nav { width: 36px; height: 36px; font-size: 1rem; }
+    .lightbox-prev { left: 4px; }
+    .lightbox-next { right: 4px; }
+    .lightbox-close { top: 8px; right: 8px; width: 36px; height: 36px; }
+    .lightbox-img-wrap { padding: 50px 8px 80px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>在路上</h1>
+  <p>旅行记忆</p>
+</header>
+
+<main class="gallery" id="gallery"></main>
+
+<footer>每一次出发，都是与世界的重逢</footer>
+
+<button class="btn-random" id="btnRandom" aria-label="随手翻" title="随手翻一张">🎲</button>
+
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" id="btnClose">&times;</button>
+  <button class="lightbox-nav lightbox-prev" id="btnPrev">&lsaquo;</button>
+  <button class="lightbox-nav lightbox-next" id="btnNext">&rsaquo;</button>
+  <div class="lightbox-img-wrap" id="lightboxWrap">
+    <img class="lightbox-img current" id="lightboxImgA" src="" alt="">
+    <img class="lightbox-img" id="lightboxImgB" src="" alt="">
+  </div>
+  <button class="btn-shuffle" id="btnShuffle">再翻一张</button>
+  <span class="lightbox-counter" id="lightboxCounter"></span>
+</div>
+
+<script>
+const IMG_EXTS = new Set(["jpg", "jpeg", "png", "gif", "webp", "bmp", "svg"]);
+let images = [];
+
+// --- Random dates for Polaroid stamps ---
+const STORAGE_KEY = "gallery_dates";
+let savedDates = {};
+
+function loadSavedDates() {
+  try { savedDates = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch (e) { savedDates = {}; }
+}
+
+function saveDate(filename, date) {
+  savedDates[filename] = date;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(savedDates));
+}
+
+function getDateForImage(src) {
+  if (savedDates[src]) return savedDates[src];
+  const y = 2024 + Math.floor(Math.random() * 2);
+  const m = Math.floor(Math.random() * 12);
+  const d = Math.floor(Math.random() * 28) + 1;
+  const date = new Date(y, m, d);
+  return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
+}
+
+// --- Load image list ---
+async function loadImageList() {
+  // 1. Try images.json (works on GitHub Pages & any static host)
+  try {
+    const resp = await fetch("images.json");
+    if (resp.ok) { images = await resp.json(); return; }
+  } catch (e) { /* proceed */ }
+
+  // 2. Try server directory listing (works with local python/http-server)
+  try {
+    const resp = await fetch("./");
+    const html = await resp.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, "text/html");
+    const links = doc.querySelectorAll("a");
+    const found = [];
+    for (const a of links) {
+      const href = a.getAttribute("href");
+      if (!href) continue;
+      const ext = href.split(".").pop().toLowerCase();
+      if (IMG_EXTS.has(ext)) found.push(href);
+    }
+    if (found.length > 0) { images = found; return; }
+  } catch (e) { /* fallback */ }
+
+  // 3. Hardcoded fallback
+  images = [
+    "04b7cb93c1b772b72c9018be94472314.jpg",
+    "0e868ba5c5552a48af12a81721bf3e26.jpg",
+    "2efbf349f129ef385c0ef3ef0bb3cb15.jpg",
+    "3a71267bbca171f43a43038bc9a510de.jpg",
+    "3da0750e557fd9b626ad57136bd208e6.jpg",
+    "59583186484dac4168fb29f9c8b3101b.jpg",
+    "7c9a22a1d866c4707a439ae4b37b11a7.jpg",
+    "8e87536f05b0f8422236cee7ff4e238f.jpg",
+    "9dde0e9e52816937a844b51a5ea33079.jpg",
+    "b6e4d01908d1b643443825c372558916.jpg",
+    "c46dbab535bd7db9da4f4f925101dc0d.jpg",
+    "d34a383761aa9aec7ee366872645190a.jpg",
+    "df65b7d58e17891a1aa2bd398d6d5c6f.jpg",
+    "f7bc97b503267ad5995c999a8ce177bf.jpg"
+  ];
+}
+
+// --- Build gallery ---
+const gallery = document.getElementById("gallery");
+
+function buildGallery() {
+  gallery.innerHTML = "";
+  images.forEach((src, i) => {
+    const card = document.createElement("div");
+    card.className = "gallery-item reveal";
+    // Random slight rotation: ±2.5°
+    const deg = ((Math.random() * 5) - 2.5).toFixed(2);
+    card.style.transform = `rotate(${deg}deg)`;
+    card.style.transition = "box-shadow 0.35s ease, transform 0.35s ease, opacity 0.55s ease-out";
+
+    const frame = document.createElement("div");
+    frame.className = "photo-frame";
+
+    const img = document.createElement("img");
+    img.src = src;
+    img.alt = "";
+    img.loading = "lazy";
+
+    const date = document.createElement("div");
+    date.className = "date-stamp";
+    date.contentEditable = "true";
+    date.textContent = getDateForImage(src);
+    date.addEventListener("blur", () => saveDate(src, date.textContent.trim() || getDateForImage(src)));
+    date.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); date.blur(); } });
+    // Stop click from opening lightbox when editing date
+    date.addEventListener("click", (e) => e.stopPropagation());
+
+    frame.appendChild(img);
+    card.appendChild(frame);
+    card.appendChild(date);
+    card.addEventListener("click", () => openLightbox(i));
+    gallery.appendChild(card);
+  });
+
+  // Reveal on scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, idx) => {
+      if (entry.isIntersecting) {
+        const card = entry.target;
+        // Stagger delay per row
+        const delay = Math.min(idx * 60, 400);
+        setTimeout(() => card.classList.add("visible"), delay);
+        observer.unobserve(card);
+      }
+    });
+  }, { threshold: 0.15, rootMargin: "0px 0px -40px 0px" });
+
+  document.querySelectorAll(".gallery-item").forEach((card) => observer.observe(card));
+}
+
+// --- Lightbox ---
+const lightbox = document.getElementById("lightbox");
+const lightboxWrap = document.getElementById("lightboxWrap");
+const lightboxCounter = document.getElementById("lightboxCounter");
+const imgA = document.getElementById("lightboxImgA");
+const imgB = document.getElementById("lightboxImgB");
+let currentIndex = 0;
+let activeImg = imgA;
+let standbyImg = imgB;
+let isTransitioning = false;
+
+function openLightbox(index) {
+  currentIndex = index;
+  resetZoom();
+  isTransitioning = true;
+  loadImage(activeImg, images[currentIndex]);
+  activeImg.classList.add("current");
+  standbyImg.classList.remove("current");
+  lightbox.classList.add("active");
+  document.body.style.overflow = "hidden";
+  lightboxCounter.textContent = `${currentIndex + 1} / ${images.length}`;
+  setTimeout(() => { isTransitioning = false; }, 400);
+}
+
+function closeLightbox() {
+  lightbox.classList.remove("active");
+  document.body.style.overflow = "";
+  resetZoom();
+}
+
+function loadImage(img, src) {
+  if (img.src.endsWith(src)) return;
+  img.src = src;
+}
+
+function swapImages() {
+  isTransitioning = true;
+  standbyImg.src = images[currentIndex];
+  standbyImg.classList.add("current");
+  activeImg.classList.remove("current");
+  const temp = activeImg;
+  activeImg = standbyImg;
+  standbyImg = temp;
+  lightboxCounter.textContent = `${currentIndex + 1} / ${images.length}`;
+  resetZoom();
+  setTimeout(() => { isTransitioning = false; }, 400);
+}
+
+function prevImage() {
+  if (isTransitioning) return;
+  currentIndex = (currentIndex - 1 + images.length) % images.length;
+  swapImages();
+}
+
+function nextImage() {
+  if (isTransitioning) return;
+  currentIndex = (currentIndex + 1) % images.length;
+  swapImages();
+}
+
+function randomImage() {
+  if (isTransitioning || images.length < 2) return;
+  let idx;
+  do { idx = Math.floor(Math.random() * images.length); } while (idx === currentIndex);
+  currentIndex = idx;
+  swapImages();
+}
+
+document.getElementById("btnClose").addEventListener("click", closeLightbox);
+document.getElementById("btnPrev").addEventListener("click", prevImage);
+document.getElementById("btnNext").addEventListener("click", nextImage);
+document.getElementById("btnShuffle").addEventListener("click", randomImage);
+
+lightbox.addEventListener("click", (e) => {
+  if (e.target === lightbox) closeLightbox();
+});
+
+// "随手翻" floating button
+document.getElementById("btnRandom").addEventListener("click", () => {
+  const idx = Math.floor(Math.random() * images.length);
+  openLightbox(idx);
+});
+
+// Keyboard
+document.addEventListener("keydown", (e) => {
+  if (!lightbox.classList.contains("active")) return;
+  if (e.key === "Escape") closeLightbox();
+  if (e.key === "ArrowLeft") prevImage();
+  if (e.key === "ArrowRight") nextImage();
+});
+
+// --- Pinch Zoom ---
+let scale = 1, panX = 0, panY = 0;
+let lastDist = 0, lastPanX = 0, lastPanY = 0;
+let isZoomed = false;
+let pinchCenterX = 0, pinchCenterY = 0;
+let doubleTapTimer = null;
+
+function resetZoom() {
+  scale = 1; panX = 0; panY = 0; isZoomed = false;
+  applyZoom();
+  activeImg.classList.remove("zoomed");
+}
+
+function applyZoom() {
+  activeImg.style.transform = isZoomed
+    ? `translate(${panX}px, ${panY}px) scale(${scale})`
+    : "";
+}
+
+function getPinchDist(t) {
+  return Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+}
+
+function getPinchCenter(t) {
+  return { x: (t[0].clientX + t[1].clientX) / 2, y: (t[0].clientY + t[1].clientY) / 2 };
+}
+
+lightboxWrap.addEventListener("touchstart", (e) => {
+  if (e.touches.length === 2) {
+    lastDist = getPinchDist(e.touches);
+    const c = getPinchCenter(e.touches);
+    pinchCenterX = c.x; pinchCenterY = c.y;
+    lastPanX = panX; lastPanY = panY;
+    activeImg.classList.add("zoomed");
+  } else if (e.touches.length === 1 && isZoomed) {
+    lastPanX = panX; lastPanY = panY;
+    pinchCenterX = e.touches[0].clientX;
+    pinchCenterY = e.touches[0].clientY;
+    e.preventDefault();
+  }
+}, { passive: false });
+
+lightboxWrap.addEventListener("touchmove", (e) => {
+  if (e.touches.length === 2) {
+    e.preventDefault();
+    const dist = getPinchDist(e.touches);
+    const ns = Math.min(5, Math.max(1, scale * (dist / lastDist)));
+    if (ns > 1.05) isZoomed = true;
+    const c = getPinchCenter(e.touches);
+    const ratio = ns / (scale || 1);
+    panX = pinchCenterX - ratio * (pinchCenterX - lastPanX);
+    panY = pinchCenterY - ratio * (pinchCenterY - lastPanY);
+    scale = ns;
+    applyZoom();
+  } else if (e.touches.length === 1 && isZoomed) {
+    e.preventDefault();
+    panX = lastPanX + (e.touches[0].clientX - pinchCenterX);
+    panY = lastPanY + (e.touches[0].clientY - pinchCenterY);
+    applyZoom();
+  }
+}, { passive: false });
+
+lightboxWrap.addEventListener("touchend", (e) => {
+  if (scale < 1.05) resetZoom();
+  if (e.touches.length === 0) lastDist = 0;
+});
+
+// Double-tap zoom
+lightboxWrap.addEventListener("click", (e) => {
+  if (e.target === activeImg && !isZoomed) {
+    if (doubleTapTimer) {
+      clearTimeout(doubleTapTimer);
+      doubleTapTimer = null;
+      isZoomed = true; scale = 2.5; panX = 0; panY = 0;
+      activeImg.classList.add("zoomed");
+      applyZoom();
+    } else {
+      doubleTapTimer = setTimeout(() => { doubleTapTimer = null; }, 300);
+    }
+  } else if (e.target === activeImg && isZoomed) {
+    resetZoom();
+  }
+});
+
+// Wheel zoom
+lightboxWrap.addEventListener("wheel", (e) => {
+  e.preventDefault();
+  const rect = activeImg.getBoundingClientRect();
+  const mx = e.clientX - (rect.left + rect.width / 2);
+  const my = e.clientY - (rect.top + rect.height / 2);
+  const factor = e.deltaY < 0 ? 1.1 : 0.9;
+  const ns = Math.min(5, Math.max(1, scale * factor));
+  if (ns > 1.05) {
+    isZoomed = true;
+    activeImg.classList.add("zoomed");
+    const ratio = ns / scale;
+    panX = panX * ratio - mx * (ratio - 1);
+    panY = panY * ratio - my * (ratio - 1);
+    scale = ns;
+    applyZoom();
+  } else { resetZoom(); }
+}, { passive: false });
+
+// --- Swipe to navigate (only when not zoomed) ---
+let swipeX = 0, swipeY = 0;
+lightbox.addEventListener("touchstart", (e) => {
+  if (e.touches.length === 1 && !isZoomed) {
+    swipeX = e.touches[0].clientX; swipeY = e.touches[0].clientY;
+  }
+}, { passive: true });
+
+lightbox.addEventListener("touchend", (e) => {
+  if (isZoomed || e.touches.length > 0) return;
+  const dx = e.changedTouches[0].clientX - swipeX;
+  const dy = e.changedTouches[0].clientY - swipeY;
+  if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+    dx > 0 ? prevImage() : nextImage();
+  }
+});
+
+// --- Init ---
+loadSavedDates();
+loadImageList().then(() => buildGallery());
+</script>
+
+</body>
+</html>

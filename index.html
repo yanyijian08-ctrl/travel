@@ -33,6 +33,35 @@
     margin-top: 6px;
   }
 
+  /* --- Mode toggle --- */
+  .mode-toggle {
+    display: flex;
+    justify-content: center;
+    gap: 0;
+    margin-top: 18px;
+  }
+
+  .mode-toggle button {
+    border: 1px solid #d4b896;
+    background: transparent;
+    color: #9b8a74;
+    padding: 7px 22px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    font-family: inherit;
+    letter-spacing: 0.04em;
+    transition: all 0.25s ease;
+  }
+
+  .mode-toggle button:first-child { border-radius: 6px 0 0 6px; }
+  .mode-toggle button:last-child  { border-radius: 0 6px 6px 0; border-left: none; }
+
+  .mode-toggle button.active {
+    background: #d4a574;
+    color: #fff;
+    border-color: #d4a574;
+  }
+
   .gallery {
     max-width: 1200px;
     margin: 0 auto;
@@ -329,6 +358,208 @@
     .lightbox-close { top: 8px; right: 8px; width: 36px; height: 36px; }
     .lightbox-img-wrap { padding: 50px 8px 80px; }
   }
+
+  /* ==================== ALBUM MODE ==================== */
+  .album-container {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: #2a2018;
+    z-index: 500;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    perspective: 1200px;
+  }
+
+  .album-container.active {
+    display: flex;
+  }
+
+  .album-header {
+    position: absolute;
+    top: 12px;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    z-index: 10;
+    padding: 0 60px;
+  }
+
+  .album-sort-btn {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.7);
+    padding: 6px 16px;
+    border-radius: 16px;
+    font-size: 0.78rem;
+    cursor: pointer;
+    font-family: inherit;
+    letter-spacing: 0.04em;
+    transition: all 0.2s ease;
+  }
+
+  .album-sort-btn.active {
+    background: rgba(212,165,116,0.35);
+    border-color: #d4a574;
+    color: #fff;
+  }
+
+  .album-close-btn {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.7);
+    font-size: 1.3rem;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Album polaroid page */
+  .album-polaroid {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding: 80px 20px 100px;
+    transform-style: preserve-3d;
+    transition: transform 0.45s ease;
+  }
+
+  .album-polaroid.flip-left {
+    transform: rotateY(-25deg) scale(0.9);
+    opacity: 0;
+    transition: transform 0.35s ease-in, opacity 0.35s ease-in;
+  }
+
+  .album-polaroid.flip-right {
+    transform: rotateY(25deg) scale(0.9);
+    opacity: 0;
+    transition: transform 0.35s ease-in, opacity 0.35s ease-in;
+  }
+
+  .album-polaroid.flip-enter {
+    transform: rotateY(0) scale(1);
+    opacity: 1;
+    transition: transform 0.4s ease-out, opacity 0.4s ease-out;
+  }
+
+  .album-card {
+    background: #faf7f2;
+    padding: 14px 14px 40px;
+    border-radius: 4px;
+    box-shadow:
+      0 2px 8px rgba(0,0,0,0.2),
+      0 8px 32px rgba(0,0,0,0.3);
+    max-width: 88vw;
+    max-height: 78vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .album-card .photo-frame {
+    overflow: hidden;
+    border-radius: 3px;
+    line-height: 0;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .album-card img {
+    max-width: 100%;
+    max-height: 55vh;
+    display: block;
+    object-fit: contain;
+    -webkit-user-drag: none;
+    user-select: none;
+  }
+
+  .album-card .date-stamp {
+    margin-top: 12px;
+    font-family: "Brush Script MT", "KaiTi", "STKaiti", cursive, serif;
+    font-size: 0.95rem;
+    color: #c47a4a;
+    letter-spacing: 0.04em;
+    cursor: text;
+    border: 1px dashed transparent;
+    border-radius: 3px;
+    padding: 2px 8px;
+    outline: none;
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  .album-card .date-stamp:hover {
+    border-color: #d4a574;
+  }
+
+  .album-card .date-stamp:focus {
+    border-color: #c47a4a;
+  }
+
+  /* Album navigation */
+  .album-nav-bottom {
+    position: absolute;
+    bottom: 24px;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    z-index: 10;
+  }
+
+  .album-nav-btn {
+    width: 44px;
+    height: 44px;
+    border: none;
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    font-size: 1.4rem;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease;
+  }
+
+  .album-nav-btn:hover { background: rgba(255,255,255,0.2); }
+  .album-nav-btn:active { background: rgba(255,255,255,0.3); }
+
+  .album-page-num {
+    color: rgba(255,255,255,0.5);
+    font-size: 0.9rem;
+    letter-spacing: 0.06em;
+    min-width: 60px;
+    text-align: center;
+  }
+
+  @media (max-width: 500px) {
+    .album-card { padding: 10px 10px 28px; max-width: 94vw; }
+    .album-card .date-stamp { font-size: 0.8rem; margin-top: 8px; }
+    .album-card img { max-height: 50vh; }
+    .album-polaroid { padding: 70px 12px 90px; }
+    .album-nav-btn { width: 40px; height: 40px; font-size: 1.2rem; }
+    .album-nav-bottom { bottom: 16px; gap: 12px; }
+  }
 </style>
 </head>
 <body>
@@ -336,11 +567,39 @@
 <header>
   <h1>在路上</h1>
   <p>旅行记忆</p>
+  <div class="mode-toggle" id="modeToggle">
+    <button class="active" data-mode="gallery">画廊</button>
+    <button data-mode="album">相册</button>
+  </div>
 </header>
 
 <main class="gallery" id="gallery"></main>
 
-<footer>每一次出发，都是与世界的重逢</footer>
+<footer id="galleryFooter">每一次出发，都是与世界的重逢</footer>
+
+<!-- ====== Album Mode ====== -->
+<div class="album-container" id="albumContainer">
+  <div class="album-header">
+    <button class="album-sort-btn active" data-sort="date">时间排序</button>
+    <button class="album-sort-btn" data-sort="random">随机排序</button>
+  </div>
+  <button class="album-close-btn" id="albumClose">&times;</button>
+
+  <div class="album-polaroid" id="albumPolaroid">
+    <div class="album-card" id="albumCard">
+      <div class="photo-frame">
+        <img id="albumImg" src="" alt="">
+      </div>
+      <div class="date-stamp" id="albumDate" contenteditable="true"></div>
+    </div>
+  </div>
+
+  <div class="album-nav-bottom">
+    <button class="album-nav-btn" id="albumPrev">&lsaquo;</button>
+    <span class="album-page-num" id="albumPageNum">1 / 1</span>
+    <button class="album-nav-btn" id="albumNext">&rsaquo;</button>
+  </div>
+</div>
 
 <button class="btn-random" id="btnRandom" aria-label="随手翻" title="随手翻一张">🎲</button>
 
@@ -692,6 +951,188 @@ lightbox.addEventListener("touchend", (e) => {
   const dy = e.changedTouches[0].clientY - swipeY;
   if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
     dx > 0 ? prevImage() : nextImage();
+  }
+});
+
+// --- Album mode ---
+const albumContainer = document.getElementById("albumContainer");
+const albumPolaroid = document.getElementById("albumPolaroid");
+const albumImg = document.getElementById("albumImg");
+const albumDate = document.getElementById("albumDate");
+const albumPageNum = document.getElementById("albumPageNum");
+let albumImages = [];
+let albumPage = 0;
+let albumSort = "date";
+let albumFlipLock = false;
+
+function getDateValue(src) {
+  if (savedDates[src]) return savedDates[src];
+  // Generate stable date from filename hash
+  let hash = 0;
+  for (let i = 0; i < src.length; i++) hash = ((hash << 5) - hash) + src.charCodeAt(i);
+  hash = Math.abs(hash);
+  const y = 2024 + (hash % 2);
+  const m = (Math.floor(hash / 7) % 12);
+  const d = (Math.floor(hash / 13) % 28) + 1;
+  const date = new Date(y, m, d);
+  return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function parseDate(str) {
+  const parts = str.split(".");
+  if (parts.length === 3) return new Date(+parts[0], +parts[1] - 1, +parts[2]);
+  return new Date(0);
+}
+
+function buildAlbumList() {
+  const list = [...images];
+  if (albumSort === "date") {
+    list.sort((a, b) => {
+      const da = savedDates[a] ? parseDate(savedDates[a]) : parseDate(getDateValue(a));
+      const db = savedDates[b] ? parseDate(savedDates[b]) : parseDate(getDateValue(b));
+      return db - da; // newest first
+    });
+  } else {
+    // Fisher-Yates shuffle
+    for (let i = list.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [list[i], list[j]] = [list[j], list[i]];
+    }
+  }
+  return list;
+}
+
+function openAlbum() {
+  albumImages = buildAlbumList();
+  albumPage = 0;
+  renderAlbumPage();
+  albumContainer.classList.add("active");
+  document.body.style.overflow = "hidden";
+}
+
+function closeAlbum() {
+  albumContainer.classList.remove("active");
+  document.body.style.overflow = "";
+}
+
+function renderAlbumPage() {
+  if (albumImages.length === 0) return;
+  const src = albumImages[albumPage];
+  albumImg.src = src;
+  albumDate.textContent = savedDates[src] || getDateValue(src);
+  albumPageNum.textContent = `${albumPage + 1} / ${albumImages.length}`;
+}
+
+function albumPrev() {
+  if (albumFlipLock || albumImages.length < 2) return;
+  albumFlipLock = true;
+  // Flip current out to the right
+  albumPolaroid.classList.add("flip-right");
+  albumPolaroid.classList.remove("flip-enter");
+  setTimeout(() => {
+    albumPage = (albumPage - 1 + albumImages.length) % albumImages.length;
+    renderAlbumPage();
+    albumPolaroid.classList.remove("flip-right");
+    albumPolaroid.classList.add("flip-enter");
+    setTimeout(() => {
+      albumPolaroid.classList.remove("flip-enter");
+      albumFlipLock = false;
+    }, 400);
+  }, 350);
+}
+
+function albumNext() {
+  if (albumFlipLock || albumImages.length < 2) return;
+  albumFlipLock = true;
+  // Flip current out to the left
+  albumPolaroid.classList.add("flip-left");
+  albumPolaroid.classList.remove("flip-enter");
+  setTimeout(() => {
+    albumPage = (albumPage + 1) % albumImages.length;
+    renderAlbumPage();
+    albumPolaroid.classList.remove("flip-left");
+    albumPolaroid.classList.add("flip-enter");
+    setTimeout(() => {
+      albumPolaroid.classList.remove("flip-enter");
+      albumFlipLock = false;
+    }, 400);
+  }, 350);
+}
+
+// Album date edit
+albumDate.addEventListener("blur", () => {
+  const src = albumImages[albumPage];
+  saveDate(src, albumDate.textContent.trim() || getDateValue(src));
+});
+albumDate.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") { e.preventDefault(); albumDate.blur(); }
+});
+
+// Album controls
+document.getElementById("albumPrev").addEventListener("click", albumPrev);
+document.getElementById("albumNext").addEventListener("click", albumNext);
+document.getElementById("albumClose").addEventListener("click", closeAlbum);
+
+// Album sort buttons
+document.querySelectorAll(".album-sort-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".album-sort-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    albumSort = btn.dataset.sort;
+    albumImages = buildAlbumList();
+    albumPage = 0;
+    renderAlbumPage();
+  });
+});
+
+// Album swipe
+let albumSwipeX = 0, albumSwipeY = 0;
+albumContainer.addEventListener("touchstart", (e) => {
+  albumSwipeX = e.touches[0].clientX;
+  albumSwipeY = e.touches[0].clientY;
+}, { passive: true });
+
+albumContainer.addEventListener("touchend", (e) => {
+  const dx = e.changedTouches[0].clientX - albumSwipeX;
+  const dy = e.changedTouches[0].clientY - albumSwipeY;
+  if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+    dx > 0 ? albumPrev() : albumNext();
+  }
+});
+
+// Album click on polaroid to open full lightbox
+albumImg.addEventListener("click", () => {
+  const src = albumImages[albumPage];
+  const idx = images.indexOf(src);
+  if (idx >= 0) openLightbox(idx);
+});
+
+// --- Mode toggle ---
+document.querySelectorAll(".mode-toggle button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".mode-toggle button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    const mode = btn.dataset.mode;
+    if (mode === "gallery") {
+      closeAlbum();
+      document.getElementById("gallery").style.display = "";
+      document.getElementById("galleryFooter").style.display = "";
+      document.getElementById("btnRandom").style.display = "";
+    } else {
+      document.getElementById("gallery").style.display = "none";
+      document.getElementById("galleryFooter").style.display = "none";
+      document.getElementById("btnRandom").style.display = "none";
+      openAlbum();
+    }
+  });
+});
+
+// Extended keyboard: also handle album mode keys
+document.addEventListener("keydown", (e) => {
+  if (albumContainer.classList.contains("active")) {
+    if (e.key === "Escape") closeAlbum();
+    if (e.key === "ArrowLeft") albumPrev();
+    if (e.key === "ArrowRight") albumNext();
   }
 });
 

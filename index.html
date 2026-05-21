@@ -631,7 +631,7 @@ let savedDates = {};
 async function loadSavedDates() {
   // 1. Load cloud dates (dates.json on server)
   try {
-    const resp = await fetch("dates.json");
+    const resp = await fetch("dates.json?t=" + Date.now());
     if (resp.ok) savedDates = await resp.json();
   } catch (e) { savedDates = {}; }
   // 2. Merge local overrides (localStorage wins)
@@ -680,7 +680,7 @@ function exportDates() {
 async function loadImageList() {
   // 1. Try images.json (works on GitHub Pages & any static host)
   try {
-    const resp = await fetch("images.json");
+    const resp = await fetch("images.json?t=" + Date.now());
     if (resp.ok) { images = await resp.json(); return; }
   } catch (e) { /* proceed */ }
 

@@ -76,7 +76,7 @@
     margin-bottom: 20px;
     cursor: pointer;
     background: #faf7f2;
-    padding: 10px 10px 32px;
+    padding: 10px 10px 14px;
     border-radius: 4px;
     box-shadow:
       0 1px 3px rgba(80, 50, 20, 0.06),
@@ -110,39 +110,6 @@
     display: block;
   }
 
-  /* Date stamp */
-  .gallery-item .date-stamp {
-    text-align: center;
-    margin-top: 10px;
-    font-family: "Brush Script MT", "KaiTi", "STKaiti", cursive, serif;
-    font-size: 0.85rem;
-    color: #c47a4a;
-    letter-spacing: 0.04em;
-    line-height: 1;
-    opacity: 0.8;
-    cursor: text;
-    border: 1px dashed transparent;
-    border-radius: 3px;
-    padding: 2px 6px;
-    transition: border-color 0.2s ease, background 0.2s ease;
-    outline: none;
-    min-width: 60px;
-    -webkit-user-select: text;
-    user-select: text;
-  }
-
-  .gallery-item .date-stamp:hover {
-    border-color: #d4a574;
-    background: rgba(212, 165, 116, 0.08);
-  }
-
-  .gallery-item .date-stamp:focus {
-    border-color: #c47a4a;
-    background: rgba(212, 165, 116, 0.12);
-    opacity: 1;
-  }
-
-  /* --- Scroll reveal --- */
   .gallery-item.reveal {
     opacity: 0;
     transform: translateY(36px);
@@ -334,7 +301,7 @@
       column-gap: 14px;
       padding: 0 14px 70px;
     }
-    .gallery-item { margin-bottom: 14px; padding: 8px 8px 24px; }
+    .gallery-item { margin-bottom: 14px; padding: 8px 8px 12px; }
   }
 
   /* Phone */
@@ -347,8 +314,7 @@
       column-gap: 10px;
       padding: 0 10px 60px;
     }
-    .gallery-item { margin-bottom: 10px; padding: 7px 7px 20px; }
-    .gallery-item .date-stamp { font-size: 0.72rem; margin-top: 6px; }
+    .gallery-item { margin-bottom: 10px; padding: 7px 7px 14px; }
 
     .btn-random { width: 48px; height: 48px; bottom: 20px; right: 20px; font-size: 1.3rem; }
 
@@ -459,7 +425,7 @@
 
   .album-card {
     background: #faf7f2;
-    padding: 14px 14px 40px;
+    padding: 14px 14px 18px;
     border-radius: 4px;
     box-shadow:
       0 2px 8px rgba(0,0,0,0.2),
@@ -488,29 +454,6 @@
     object-fit: contain;
     -webkit-user-drag: none;
     user-select: none;
-  }
-
-  .album-card .date-stamp {
-    margin-top: 12px;
-    font-family: "Brush Script MT", "KaiTi", "STKaiti", cursive, serif;
-    font-size: 0.95rem;
-    color: #c47a4a;
-    letter-spacing: 0.04em;
-    cursor: text;
-    border: 1px dashed transparent;
-    border-radius: 3px;
-    padding: 2px 8px;
-    outline: none;
-    -webkit-user-select: text;
-    user-select: text;
-  }
-
-  .album-card .date-stamp:hover {
-    border-color: #d4a574;
-  }
-
-  .album-card .date-stamp:focus {
-    border-color: #c47a4a;
   }
 
   /* Album navigation */
@@ -553,8 +496,7 @@
   }
 
   @media (max-width: 500px) {
-    .album-card { padding: 10px 10px 28px; max-width: 94vw; }
-    .album-card .date-stamp { font-size: 0.8rem; margin-top: 8px; }
+    .album-card { padding: 10px 10px 14px; max-width: 94vw; }
     .album-card img { max-height: 50vh; }
     .album-polaroid { padding: 70px 12px 90px; }
     .album-nav-btn { width: 40px; height: 40px; font-size: 1.2rem; }
@@ -575,17 +517,12 @@
 
 <main class="gallery" id="gallery"></main>
 
-<footer id="galleryFooter">
-  每一次出发，都是与世界的重逢
-  <span style="display:block;margin-top:8px;">
-    <a href="javascript:exportDates()" style="color:#c8b8a4;font-size:0.75rem;text-decoration:underline;cursor:pointer;">导出日期备份</a>
-  </span>
-</footer>
+<footer id="galleryFooter">每一次出发，都是与世界的重逢</footer>
 
 <!-- ====== Album Mode ====== -->
 <div class="album-container" id="albumContainer">
   <div class="album-header">
-    <button class="album-sort-btn active" data-sort="date">时间排序</button>
+    <button class="album-sort-btn active" data-sort="default">默认排序</button>
     <button class="album-sort-btn" data-sort="random">随机排序</button>
   </div>
   <button class="album-close-btn" id="albumClose">&times;</button>
@@ -595,7 +532,6 @@
       <div class="photo-frame">
         <img id="albumImg" src="" alt="">
       </div>
-      <div class="date-stamp" id="albumDate" contenteditable="true"></div>
     </div>
   </div>
 
@@ -623,58 +559,6 @@
 <script>
 const IMG_EXTS = new Set(["jpg", "jpeg", "png", "gif", "webp", "bmp", "svg"]);
 let images = [];
-
-// --- Dates: cloud (dates.json) + local (localStorage) ---
-const STORAGE_KEY = "gallery_dates";
-let savedDates = {};
-
-async function loadSavedDates() {
-  // 1. Load cloud dates (dates.json on server)
-  try {
-    const resp = await fetch("dates.json?t=" + Date.now());
-    if (resp.ok) savedDates = await resp.json();
-  } catch (e) { savedDates = {}; }
-  // 2. Merge local overrides (localStorage wins)
-  try {
-    const local = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-    Object.assign(savedDates, local);
-  } catch (e) { /* ignore */ }
-}
-
-function saveDate(filename, date) {
-  savedDates[filename] = date;
-  // Save to localStorage for local persistence
-  try {
-    const local = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-    local[filename] = date;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(local));
-  } catch (e) { /* ignore */ }
-}
-
-function getDateForImage(src) {
-  if (savedDates[src]) return savedDates[src];
-  // Stable date from filename hash
-  let hash = 0;
-  for (let i = 0; i < src.length; i++) hash = ((hash << 5) - hash) + src.charCodeAt(i);
-  hash = Math.abs(hash);
-  const y = 2024 + (hash % 2);
-  const m = (Math.floor(hash / 7) % 12);
-  const d = (Math.floor(hash / 13) % 28) + 1;
-  const date = new Date(y, m, d);
-  const str = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
-  savedDates[src] = str;
-  return str;
-}
-
-// Export dates button — shows when there are unsaved edits
-function exportDates() {
-  const blob = new Blob([JSON.stringify(savedDates, null, 2)], { type: "application/json" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "dates.json";
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
 
 // --- Load image list ---
 async function loadImageList() {
@@ -746,18 +630,8 @@ function buildGallery() {
     img.alt = "";
     img.loading = "lazy";
 
-    const date = document.createElement("div");
-    date.className = "date-stamp";
-    date.contentEditable = "true";
-    date.textContent = getDateForImage(src);
-    date.addEventListener("blur", () => saveDate(src, date.textContent.trim() || getDateForImage(src)));
-    date.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); date.blur(); } });
-    // Stop click from opening lightbox when editing date
-    date.addEventListener("click", (e) => e.stopPropagation());
-
     frame.appendChild(img);
     card.appendChild(frame);
-    card.appendChild(date);
     card.addEventListener("click", () => openLightbox(i));
     gallery.appendChild(card);
   });
@@ -993,42 +867,15 @@ lightbox.addEventListener("touchend", (e) => {
 const albumContainer = document.getElementById("albumContainer");
 const albumPolaroid = document.getElementById("albumPolaroid");
 const albumImg = document.getElementById("albumImg");
-const albumDate = document.getElementById("albumDate");
 const albumPageNum = document.getElementById("albumPageNum");
 let albumImages = [];
 let albumPage = 0;
-let albumSort = "date";
+let albumSort = "default";
 let albumFlipLock = false;
-
-function getDateValue(src) {
-  if (savedDates[src]) return savedDates[src];
-  // Generate stable date from filename hash
-  let hash = 0;
-  for (let i = 0; i < src.length; i++) hash = ((hash << 5) - hash) + src.charCodeAt(i);
-  hash = Math.abs(hash);
-  const y = 2024 + (hash % 2);
-  const m = (Math.floor(hash / 7) % 12);
-  const d = (Math.floor(hash / 13) % 28) + 1;
-  const date = new Date(y, m, d);
-  return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
-}
-
-function parseDate(str) {
-  const parts = str.split(".");
-  if (parts.length === 3) return new Date(+parts[0], +parts[1] - 1, +parts[2]);
-  return new Date(0);
-}
 
 function buildAlbumList() {
   const list = [...images];
-  if (albumSort === "date") {
-    list.sort((a, b) => {
-      const da = savedDates[a] ? parseDate(savedDates[a]) : parseDate(getDateValue(a));
-      const db = savedDates[b] ? parseDate(savedDates[b]) : parseDate(getDateValue(b));
-      return db - da; // newest first
-    });
-  } else {
-    // Fisher-Yates shuffle
+  if (albumSort === "random") {
     for (let i = list.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [list[i], list[j]] = [list[j], list[i]];
@@ -1052,9 +899,7 @@ function closeAlbum() {
 
 function renderAlbumPage() {
   if (albumImages.length === 0) return;
-  const src = albumImages[albumPage];
-  albumImg.src = src;
-  albumDate.textContent = savedDates[src] || getDateValue(src);
+  albumImg.src = albumImages[albumPage];
   albumPageNum.textContent = `${albumPage + 1} / ${albumImages.length}`;
 }
 
@@ -1093,15 +938,6 @@ function albumNext() {
     }, 400);
   }, 350);
 }
-
-// Album date edit
-albumDate.addEventListener("blur", () => {
-  const src = albumImages[albumPage];
-  saveDate(src, albumDate.textContent.trim() || getDateValue(src));
-});
-albumDate.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") { e.preventDefault(); albumDate.blur(); }
-});
 
 // Album controls
 document.getElementById("albumPrev").addEventListener("click", albumPrev);
@@ -1172,7 +1008,6 @@ document.addEventListener("keydown", (e) => {
 });
 
 // --- Init ---
-loadSavedDates();
 loadImageList().then(() => buildGallery());
 </script>
 

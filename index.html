@@ -575,7 +575,12 @@
 
 <main class="gallery" id="gallery"></main>
 
-<footer id="galleryFooter">每一次出发，都是与世界的重逢</footer>
+<footer id="galleryFooter">
+  每一次出发，都是与世界的重逢
+  <span style="display:block;margin-top:8px;">
+    <a href="javascript:exportDates()" style="color:#c8b8a4;font-size:0.75rem;text-decoration:underline;cursor:pointer;">导出日期备份</a>
+  </span>
+</footer>
 
 <!-- ====== Album Mode ====== -->
 <div class="album-container" id="albumContainer">
@@ -619,26 +624,56 @@
 const IMG_EXTS = new Set(["jpg", "jpeg", "png", "gif", "webp", "bmp", "svg"]);
 let images = [];
 
-// --- Random dates for Polaroid stamps ---
+// --- Dates: cloud (dates.json) + local (localStorage) ---
 const STORAGE_KEY = "gallery_dates";
 let savedDates = {};
 
-function loadSavedDates() {
-  try { savedDates = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch (e) { savedDates = {}; }
+async function loadSavedDates() {
+  // 1. Load cloud dates (dates.json on server)
+  try {
+    const resp = await fetch("dates.json");
+    if (resp.ok) savedDates = await resp.json();
+  } catch (e) { savedDates = {}; }
+  // 2. Merge local overrides (localStorage wins)
+  try {
+    const local = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+    Object.assign(savedDates, local);
+  } catch (e) { /* ignore */ }
 }
 
 function saveDate(filename, date) {
   savedDates[filename] = date;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(savedDates));
+  // Save to localStorage for local persistence
+  try {
+    const local = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+    local[filename] = date;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(local));
+  } catch (e) { /* ignore */ }
 }
 
 function getDateForImage(src) {
   if (savedDates[src]) return savedDates[src];
-  const y = 2024 + Math.floor(Math.random() * 2);
-  const m = Math.floor(Math.random() * 12);
-  const d = Math.floor(Math.random() * 28) + 1;
+  // Stable date from filename hash
+  let hash = 0;
+  for (let i = 0; i < src.length; i++) hash = ((hash << 5) - hash) + src.charCodeAt(i);
+  hash = Math.abs(hash);
+  const y = 2024 + (hash % 2);
+  const m = (Math.floor(hash / 7) % 12);
+  const d = (Math.floor(hash / 13) % 28) + 1;
   const date = new Date(y, m, d);
-  return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
+  const str = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
+  savedDates[src] = str;
+  return str;
+}
+
+// Export dates button — shows when there are unsaved edits
+function exportDates() {
+  const blob = new Blob([JSON.stringify(savedDates, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "dates.json";
+  a.click();
+  URL.revokeObjectURL(a.href);
 }
 
 // --- Load image list ---
